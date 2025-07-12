@@ -1,134 +1,96 @@
 #include <Arduino.h>
+// IR sensor pins
+const int leftIR = 12;
+const int rightIR = 11;
 
-// Right-Side Wheels
+// Motor driver pins
+const int IN1 = 7;
+const int IN2 = 8;
+const int IN3 = 9;
+const int IN4 = 10;
 
-int motor1pin1_right_forward = 7;
-int motor1pin2_right_backward = 8;
+void setup() {
+  // IR sensor inputs
+  pinMode(leftIR, INPUT);
+  pinMode(rightIR, INPUT);
 
-// Left-Side Wheels
+  // Motor outputs
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+}
 
-int motor2pin1_left_forward = 9;
-int motor2pin2_left_backward = 10;
+void moveForward() {
+  //digitalWrite(IN1, HIGH);
+  //digitalWrite(IN2, LOW);
+  //digitalWrite(IN3, HIGH);
+  //digitalWrite(IN4, LOW);
 
-// Enable-Pins
-
-//int enA = 6;
-//int enB = 5;
-
-// Motor(Wheel) Speed
-//int speedLeft = 200;
-//int speedRight = 200;
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
 
 void turnLeft() {
-    // Right-Wheels-Moving-Forward
-    digitalWrite(motor1pin1_right_forward, LOW);
-    digitalWrite(motor1pin2_right_backward, HIGH);
-    Serial.println("Turning Left...");
+  //digitalWrite(IN1, LOW);
+  //digitalWrite(IN2, HIGH);
+  //digitalWrite(IN3, HIGH);
+  //digitalWrite(IN4, LOW);
+
+  //Right-Motors
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
 }
 
 void turnRight() {
-    // Left-Wheels-Moving-Forward
-    digitalWrite(motor2pin1_left_forward, HIGH);
-    digitalWrite(motor2pin2_left_backward, LOW);
-    Serial.println("Turning Right...");
+  //digitalWrite(IN1, HIGH);
+  //digitalWrite(IN2, LOW);
+  //digitalWrite(IN3, LOW);
+  //digitalWrite(IN4, HIGH);
+
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
 }
 
-void movingForward() {
-  digitalWrite(motor1pin1_right_forward, LOW);
-  digitalWrite(motor1pin2_right_backward, HIGH);
-  //analogWrite(enA, speedRight);
-  delay(120);
-  digitalWrite(motor1pin1_right_forward, LOW);
-  digitalWrite(motor1pin2_right_backward, LOW);
-  delay(2);
-  digitalWrite(motor2pin1_left_forward, HIGH);
-  digitalWrite(motor2pin2_left_backward, LOW);
-  delay(120);
-  digitalWrite(motor2pin1_left_forward, LOW);
-  digitalWrite(motor2pin2_left_backward, LOW);
-  delay(2);
-  //analogWrite(enB, speedLeft);
-  Serial.println("Moving Forward...");
-}
-
-void stop() {
-    // Stopping
-    digitalWrite(motor1pin1_right_forward, LOW);
-    digitalWrite(motor1pin2_right_backward, LOW);
-    digitalWrite(motor2pin1_left_forward, LOW);
-    digitalWrite(motor2pin2_left_backward, LOW);
-    Serial.println("Stopping...");
-}
-
-void setup() {
-  // put your setup code here, to run once:
-  pinMode(motor1pin1_right_forward, OUTPUT);
-  pinMode(motor1pin2_right_backward, OUTPUT);
-  pinMode(motor2pin1_left_forward, OUTPUT);
-  pinMode(motor2pin2_left_backward, OUTPUT);
-  //pinMode(enA, OUTPUT);
-  //pinMode(enB, OUTPUT);
-
-  Serial.begin(9600);
-
+void stopMotors() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  int leftSensor = digitalRead(leftIR);
+  int rightSensor = digitalRead(rightIR);
 
-  // Right-Wheels-Moving-Forward
-  //digitalWrite(motor1pin1_right_forward, LOW);
-  //digitalWrite(motor1pin2_right_backward, HIGH);
-  // Left-Wheels-Moving-Forward
-  //digitalWrite(motor2pin1_left_forward, HIGH);
-  //digitalWrite(motor2pin2_left_backward, LOW);
-  //Serial.println("Moving Forward...");
-
-  //Moving-Forward
-  movingForward();
-  delay(3000);
-
-  // Stopping
-  stop();
-  delay(3000);
-
-  // Turning-Left
-  turnLeft();
-  delay(3000);
-
-  // Both-Wheels-Stop
-  //digitalWrite(motor1pin1_right_forward, LOW);
-  //digitalWrite(motor1pin2_right_backward, LOW);
-  //digitalWrite(motor2pin1_left_forward, LOW);
-  //digitalWrite(motor2pin2_left_backward, LOW);
-  //Serial.println("Temporary Stopping...");
-
-  // Stopping
-  stop();
-  delay(3000);
-
-  // Right-Wheels-Moving-Backward
-  //digitalWrite(motor1pin1_right_forward, HIGH);
-  //digitalWrite(motor1pin2_right_backward, LOW);
-  // Left-Wheels-Moving-Backward
-  //digitalWrite(motor2pin1_left_forward, LOW);
-  //digitalWrite(motor2pin2_left_backward, HIGH);
-  //Serial.println("Moving Backward...");
-
-  // Turning-Right
-  turnRight();
-  delay(3000);
-
-  //digitalWrite(motor1pin1_right_forward, LOW);
-  //digitalWrite(motor1pin2_right_backward, LOW);
-  //digitalWrite(motor2pin1_left_forward, LOW);
-  //digitalWrite(motor2pin2_left_backward, LOW);
-  //Serial.println("Temporary Stopping...");
-
-  // Stopping
-  stop();
-  delay(3000);
+  // Logic: Black line = 0, White = 1
+  if (leftSensor == 1 && rightSensor == 1) {
+    // Both sensors on black line - move forward
+    //moveForward();
+    stopMotors();
+  }
+  else if (leftSensor == 1 && rightSensor == 0) {
+    // Right sensor on white - turn left
+    turnRight();
+  }
+  else if (leftSensor == 0 && rightSensor == 1) {
+    // Left sensor on white - turn right
+    turnLeft();
+  }
+  else {
+    // Both on white - stop or move forward (depends on design)
+    //stopMotors();
+    moveForward();
+  }
 }
+
+
 
 
 
