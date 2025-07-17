@@ -1,98 +1,123 @@
 #include <Arduino.h>
-//#include <Servo.h>
+#include <Servo.h>
 
-//Servo myservo;
-int angle = 140;
+// Motor Driver Pins
+#define IN1 7
+#define IN2 8
+#define IN3 9
+#define IN4 10
+#define ENA 6   // PWM
+#define ENB 5  // PWM
+
+// Ultrasonic Sensor Pins
+//#define TRIG 11
+//#define ECHO 12
 
 // IR sensor pins
-//const int leftIR = 12;
-//const int rightIR = 11;
+const int leftIR = 4;
+const int rightIR = 2;
 
-// Ultrasonic sensor pins
-int trigPin = 11;
-int echoPin = 12;
+// Servo Pin
+//#define SERVO_PIN 3
+//Servo scanServo;
 
+int motorSpeedl = 71; // Speed range: 0–255
+int motorSpeedr = 71;
 
-// Motor driver pins
-const int IN1 = 7;
-const int IN2 = 8;
-const int IN3 = 9;
-const int IN4 = 10;
 
 void setup() {
-  // IR sensor inputs
-  //pinMode(leftIR, INPUT);
-  //pinMode(rightIR, INPUT);
-
-  //myservo.attach(3);
-  //myservo.write(angle);
-  //delay(500);
-
-  // Ultrasonic values
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
-
-
-  // Motor outputs
   pinMode(IN1, OUTPUT);
   pinMode(IN2, OUTPUT);
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+  //pinMode(TRIG, OUTPUT);
+  //pinMode(ECHO, INPUT);
+
+  //scanServo.attach(SERVO_PIN);
+  //scanServo.write(120); // Center position
+
+  // IR sensor inputs
+  pinMode(leftIR, INPUT);
+  pinMode(rightIR, INPUT);
 
   Serial.begin(9600);
 }
 
-long gettingDistance() {
-  digitalWrite(trigPin, LOW);
+/*
+int getDistance() {
+  digitalWrite(TRIG, LOW);
   delayMicroseconds(2);
-  
-  digitalWrite(trigPin, HIGH);
+  digitalWrite(TRIG, HIGH);
   delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  
-  long duration = pulseIn(echoPin, HIGH);
-  long distance = duration * 0.034 / 2; // Speed of sound: 343 m/s
+  digitalWrite(TRIG, LOW);
+
+  long duration = pulseIn(ECHO, HIGH);
+  long distance = duration * 0.034 / 2; // in cm
   return distance;
 }
 
-void moveForward() {
-  //digitalWrite(IN1, HIGH);
-  //digitalWrite(IN2, LOW);
-  //digitalWrite(IN3, HIGH);
-  //digitalWrite(IN4, LOW);
+void scanForBestDirection(long &leftDist, long &rightDist) {
+  scanServo.write(80);  // Look left
+  delay(1000);
+  leftDist = getDistance();
+  Serial.print("Left Distance: ");
+  Serial.println(leftDist);
 
+  scanServo.write(160);   // Look right
+  delay(1000);
+  rightDist = getDistance();
+  Serial.print("Right Distance: ");
+  Serial.println(rightDist);
+
+  scanServo.write(120);   // Reset to center
+}*/
+
+void forward() {
+  Serial.println("Moving Forward");
+  analogWrite(ENA, motorSpeedl);
+  analogWrite(ENB, motorSpeedr);
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, HIGH);
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, LOW);
 }
 
-void turnLeft() {
-  //digitalWrite(IN1, LOW);
-  //digitalWrite(IN2, HIGH);
-  //digitalWrite(IN3, HIGH);
-  //digitalWrite(IN4, LOW);
-
-  //Right-Motors
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
+/*void back() {
+  Serial.println("Reversing");
+  analogWrite(ENA, motorSpeedl);
+  analogWrite(ENB, motorSpeedr);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
-  digitalWrite(IN4, LOW);
-}
+  digitalWrite(IN4, HIGH);
+}*/
 
 void turnRight() {
-  //digitalWrite(IN1, HIGH);
-  //digitalWrite(IN2, LOW);
-  //digitalWrite(IN3, LOW);
-  //digitalWrite(IN4, HIGH);
-
+  Serial.println("Turning Right");
+  analogWrite(ENA, motorSpeedl);
+  analogWrite(ENB, motorSpeedr);
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, LOW);
 }
 
-void stopMotors() {
+void turnLeft() {
+  Serial.println("Turning Left");
+  analogWrite(ENA, motorSpeedl);
+  analogWrite(ENB, motorSpeedr);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}
+
+void stop() {
+  Serial.println("Stopping");
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
@@ -101,78 +126,63 @@ void stopMotors() {
 
 void loop() {
 
-/*
-  for(angle=180; angle>=80; angle-=1){
-    long distance = gettingDistance();
-    if(distance > 20)
-    {
-      moveForward();
-    }
-    else
-    {
-      stopMotors();
-    }
-    Serial.print("Distance: ");
-    Serial.print(distance);
-    Serial.println(" cm");
-    myservo.write(angle);
-    delay(100);
-  }
-  for(angle=80; angle<=180; angle+=1){
-    long distance = gettingDistance();
-    if(distance > 20)
-    {
-      moveForward();
-    }
-    else
-    {
-      stopMotors();
-    }
-    Serial.print("Distance: ");
-    Serial.print(distance);
-    Serial.println(" cm");
-    myservo.write(angle);
-    delay(100);
-  }
-  */
-
-  long distance = gettingDistance();
-  if(distance > 20)
-    {
-      moveForward();
-      Serial.println("Moving forward...");
-    }
-    else
-    {
-      stopMotors();
-      Serial.println("Stopped...");
-    }
-
-
-  /*int leftSensor = digitalRead(leftIR);
+  int leftSensor = digitalRead(leftIR);
   int rightSensor = digitalRead(rightIR);
-
 
   // Logic: Black line = 0, White = 1
   if (leftSensor == 1 && rightSensor == 1) {
     // Both sensors on black line - move forward
-    //moveForward();
-    stopMotors();
+    forward();
+    //stopMotors();
+    delay(200);
   }
   else if (leftSensor == 1 && rightSensor == 0) {
     // Right sensor on white - turn left
-    turnRight();
+    turnLeft();
+    delay(200);
   }
   else if (leftSensor == 0 && rightSensor == 1) {
     // Left sensor on white - turn right
-    turnLeft();
+    turnRight();
+    delay(200);
   }
   else {
     // Both on white - stop or move forward (depends on design)
-    //stopMotors();
-    moveForward();
+    stop();
+    delay(1000);
+    //moveForward();
+  }
+
+
+  
+  /*
+  long distance = getDistance();
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  if (distance > 40 || distance == 0) {
+    forward();
+  } else {
+    stop();
+    delay(200);
+    // back();
+    delay(50);
+
+    // Scan left and right, then decide
+    long leftDist, rightDist;
+    scanForBestDirection(leftDist, rightDist);
+
+    if (rightDist > leftDist) {
+      turnLeft();
+    } else {
+      turnRight();
+    }
+    delay(250);
   }*/
 }
+
+
 
 
 
